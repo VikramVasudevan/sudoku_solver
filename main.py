@@ -1,4 +1,5 @@
 import json
+from time import monotonic
 
 SUDOKU_PUZZLE_SIZE = 9
 
@@ -76,7 +77,7 @@ def getSubcubeByRowCol(prmRow, prmCol):
     return subcubeNumber
 
 def getCellsBySubcubeNumber(subcubeNumber):
-    print("getting cells for subcube", subcubeNumber)
+    # print("getting cells for subcube", subcubeNumber)
     subcube = SUBCUBE_CONFIG[subcubeNumber]
     cells = []
     for row in range(subcube[0][0],subcube[0][1] + 1):
@@ -206,7 +207,7 @@ def solve(unsolvedGrid, level):
                     # these are  having exactly 8 impossible values indicating that only one possible value is there
                     # find that value and set it directly
                     possibleValues = [x for x in range(1, SUDOKU_PUZZLE_SIZE + 1) if x not in solvedGrid[gridIndex]['impossibleValues']]
-                    print("Possible Values = ", solvedGrid[gridIndex]['impossibleValues'], range(1, SUDOKU_PUZZLE_SIZE + 1), possibleValues)
+                    # print("Possible Values = ", solvedGrid[gridIndex]['impossibleValues'], range(1, SUDOKU_PUZZLE_SIZE + 1), possibleValues)
                     if(len(possibleValues) >= 1):
                         solvedGrid[gridIndex]['value'] = possibleValues[0]
                         solvedGrid[gridIndex]['finalized'] = True
@@ -242,6 +243,8 @@ checkGrid(puzzle)
 # test()
 # solved = isPuzzleSolved(formatGrid(puzzle))
 # print(solved)
+start_time = monotonic()
 solve(formatGrid(puzzle), 0)
+print(f"Run time {monotonic() - start_time} seconds")
 # diff()
 # print(calculatePercentComplete(formatGrid(puzzle)))
