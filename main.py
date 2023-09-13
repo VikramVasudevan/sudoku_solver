@@ -6,6 +6,12 @@ SUDOKU_PUZZLE_SIZE = config.SUDOKU_PUZZLE_SIZE
 debug = config.debug
 SUBCUBE_CONFIG = config.SUBCUBE_CONFIG
 
+# Yield successive n-sized
+# chunks from l.
+def divide_chunks(l, n):
+    # looping till length l
+    for i in range(0, len(l), n): 
+        yield l[i:i + n]
 
 def log(level, message):
     if(level == 'debug' and debug == True):
@@ -243,7 +249,7 @@ def solve(unsolvedGrid, level):
                         solvedGrid[gridIndex]['value'] = possibleValues[0]
                         solvedGrid[gridIndex]['finalized'] = True
     if(isPuzzleSolved(solvedGrid)):
-        print("Solved ...", [cell['value'] for cell in solvedGrid])
+        print("Solved ...", json.dumps(list(divide_chunks([cell['value'] for cell in solvedGrid],9)),indent=4))
         print("*****SOLVED*****")
     else:
         if(level < config.MAX_ATTEMPTS - 1):
