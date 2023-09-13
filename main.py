@@ -3,8 +3,9 @@ from time import monotonic
 import config
 
 SUDOKU_PUZZLE_SIZE = config.SUDOKU_PUZZLE_SIZE
-debug = config.debug 
+debug = config.debug
 SUBCUBE_CONFIG = config.SUBCUBE_CONFIG
+
 
 def log(level, message):
     if(level == 'debug' and debug == True):
@@ -16,7 +17,7 @@ def log(level, message):
 def generatePuzzle():
     print("Generating puzzle ...")
     # hard coding for now instead of using a generator function.
-    puzzle = config.puzzle
+    puzzle = config.expert_puzzle
     print("Generated puzzle ...")
     return puzzle
 
@@ -55,25 +56,30 @@ def getSubcubeByRowCol(prmRow, prmCol):
         index = index + 1
     return subcubeNumber
 
+
 def getCellsBySubcubeNumber(subcubeNumber):
     # print("getting cells for subcube", subcubeNumber)
     subcube = SUBCUBE_CONFIG[subcubeNumber]
     cells = []
-    for row in range(subcube[0][0],subcube[0][1] + 1):
-        for col in range(subcube[1][0],subcube[1][1] + 1):
-            cells.append((row,col))
+    for row in range(subcube[0][0], subcube[0][1] + 1):
+        for col in range(subcube[1][0], subcube[1][1] + 1):
+            cells.append((row, col))
     return cells
+
 
 def isPuzzleSolved(grid):
     solved = len([x for x in grid if x['value'] == 0]) == 0
     return solved
 
+
 def calculatePercentComplete(grid):
     unsolved = len([x for x in grid if x['value'] == 0])
     totalGridCount = SUDOKU_PUZZLE_SIZE * SUDOKU_PUZZLE_SIZE
     percent = (totalGridCount-unsolved)/totalGridCount * 100
-    print("unsolved = ", unsolved, "total = ", totalGridCount, "percent = ",percent)
+    print("unsolved = ", unsolved, "total = ",
+          totalGridCount, "percent = ", percent)
     return percent
+
 
 def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
     log("debug", "Checking possible value %s for (%s,%s)" %
@@ -128,8 +134,9 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
 
     if(endAlgorithm):
         return outcome
-    
+
     return outcome
+
 
 def formatGrid(unsolvedGrid):
     formattedGrid = []
@@ -145,8 +152,10 @@ def formatGrid(unsolvedGrid):
 
     return formattedGrid
 
+
 def solve(unsolvedGrid, level):
-    print("Solving attempt %d [completion percent = %f]..." % (level, calculatePercentComplete(unsolvedGrid)))
+    print("Solving attempt %d [completion percent = %f]..." % (
+        level, calculatePercentComplete(unsolvedGrid)))
     solvedGrid = unsolvedGrid
 
     # print("solvedGrid", json.dumps(list(solvedGrid), indent=1))
@@ -185,35 +194,40 @@ def solve(unsolvedGrid, level):
                 if(len(solvedGrid[gridIndex]['impossibleValues']) == SUDOKU_PUZZLE_SIZE - 1):
                     # these are  having exactly 8 impossible values indicating that only one possible value is there
                     # find that value and set it directly
-                    possibleValues = [x for x in range(1, SUDOKU_PUZZLE_SIZE + 1) if x not in solvedGrid[gridIndex]['impossibleValues']]
+                    possibleValues = [x for x in range(
+                        1, SUDOKU_PUZZLE_SIZE + 1) if x not in solvedGrid[gridIndex]['impossibleValues']]
                     # print("Possible Values = ", solvedGrid[gridIndex]['impossibleValues'], range(1, SUDOKU_PUZZLE_SIZE + 1), possibleValues)
                     if(len(possibleValues) >= 1):
                         solvedGrid[gridIndex]['value'] = possibleValues[0]
                         solvedGrid[gridIndex]['finalized'] = True
     if(isPuzzleSolved(solvedGrid)):
-        print("Solved ...", [cell['value'] for cell in solvedGrid])            
-        print("*****SOLVED*****")        
+        print("Solved ...", [cell['value'] for cell in solvedGrid])
+        print("*****SOLVED*****")
     else:
-        if(level < 2):
+        if(level < config.MAX_ATTEMPTS - 1):
             print("Attempting again ...", calculatePercentComplete(solvedGrid))
-            solve(solvedGrid, level +1)
+            solve(solvedGrid, level + 1)
         else:
-            print("****COULD NOT SOLVE IN 3 ATTEMPTS****")
+            print(json.dumps(solvedGrid,indent=1))
+            print("****COULD NOT SOLVE IN %d ATTEMPTS****" %
+                  (config.MAX_ATTEMPTS))
 
 
 def test():
     for row in range(0, SUDOKU_PUZZLE_SIZE):
         for col in range(0, SUDOKU_PUZZLE_SIZE):
-            print("subcube of ", row, col, "=",getSubcubeByRowCol(row, col))
+            print("subcube of ", row, col, "=", getSubcubeByRowCol(row, col))
 
     print(getCellsBySubcubeNumber(5))
 
+
 def diff():
-    list1 = [1,2,3,4,5,6,8,9]
-    list2 = range(1,10)
+    list1 = [1, 2, 3, 4, 5, 6, 8, 9]
+    list2 = range(1, 10)
     print(list1, list2)
     value = [x for x in list2 if x not in list1]
     print(value)
+
 
 print("Starting Sudoku Solver ...")
 puzzle = generatePuzzle()
