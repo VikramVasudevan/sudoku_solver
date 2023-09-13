@@ -4,11 +4,25 @@ SUDOKU_PUZZLE_SIZE = 9
 
 debug = True
 
+SUBCUBE_CONFIG = [
+    [(0, 2), (0, 2)],
+    [(0, 2), (3, 5)],
+    [(0, 2), (6, 8)],
+    [(3, 5), (0, 2)],
+    [(3, 5), (3, 5)],
+    [(3, 5), (6, 8)],
+    [(6, 8), (0, 2)],
+    [(6, 8), (3, 5)],
+    [(6, 8), (6, 8)],
+]
+
+
 def log(level, message):
     if(level == 'debug' and debug == True):
         print(message)
     elif(level != 'debug'):
         print(message)
+
 
 def generatePuzzle():
     print("Generating puzzle ...")
@@ -47,21 +61,46 @@ def checkGrid(grid):
     print("Checking if grid is populated ... DONE")
 
 
+def getSubcubeByRowCol(prmRow, prmCol):
+    subcubeNumber = -1
+    # print("Getting subcube for", prmRow, prmCol)
+    index = 0
+    for subcube in SUBCUBE_CONFIG:
+        # print("subcube = ", subcube)
+        rowDimensions = subcube[0]
+        colDimensions = subcube[1]
+        if(prmRow >= rowDimensions[0] and prmRow <= rowDimensions[1] and prmCol >= colDimensions[0] and prmCol <= colDimensions[1]):
+            subcubeNumber = index
+            break
+        index = index + 1
+    return subcubeNumber
+
+def getCellsBySubcubeNumber(subcubeNumber):
+    print("getting cells for subcube", subcubeNumber)
+    subcube = SUBCUBE_CONFIG[subcubeNumber]
+    cells = []
+    for row in range(subcube[0][0],subcube[0][1] + 1):
+        for col in range(subcube[1][0],subcube[1][1] + 1):
+            cells.append((row,col))
+    return cells
+
+
 def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
-    log("debug","Checking possible value %s for (%s,%s)" % (prmPossibleValue, prmRow, prmCol))
+    log("debug", "Checking possible value %s for (%s,%s)" %
+        (prmPossibleValue, prmRow, prmCol))
     endAlgorithm = False
     outcome = (True, 0)
     # Return a tuple containing
     # # - a boolean saying whether or not it is a possible value
     # # - a number indicating confidence level
 
-    log("debug","Checking all cells in the row ...")
+    log("debug", "Checking all cells in the row ...")
     # Check if this value is already present in the entire row
     for y in range(0, SUDOKU_PUZZLE_SIZE):
         solvedGridIndex = (prmRow * SUDOKU_PUZZLE_SIZE) + y
         matched = prmSolvedGrid[solvedGridIndex]['value'] == prmPossibleValue
-        log("debug",("solvedGrid[]", solvedGridIndex,
-              prmSolvedGrid[solvedGridIndex]['value'], prmPossibleValue, matched))
+        log("debug", ("solvedGrid[]", solvedGridIndex,
+                      prmSolvedGrid[solvedGridIndex]['value'], prmPossibleValue, matched))
         if(y != prmCol and matched == True):
             outcome = (False, 100)
             endAlgorithm = True
@@ -70,13 +109,13 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
     if(endAlgorithm):
         return outcome
 
-    log("debug","Checking all cells in the column ...")
+    log("debug", "Checking all cells in the column ...")
     # Check if this value is already present in the entire column
     for x in range(0, SUDOKU_PUZZLE_SIZE):
         solvedGridIndex = (x * SUDOKU_PUZZLE_SIZE) + prmCol
         matched = prmSolvedGrid[solvedGridIndex]['value'] == prmPossibleValue
-        log("debug",("solvedGrid[]", solvedGridIndex,
-              prmSolvedGrid[solvedGridIndex]['value'], prmPossibleValue, matched))
+        log("debug", ("solvedGrid[]", solvedGridIndex,
+                      prmSolvedGrid[solvedGridIndex]['value'], prmPossibleValue, matched))
         if(x != prmRow and matched == True):
             outcome = (False, 100)
             endAlgorithm = True
@@ -111,7 +150,7 @@ def solve(unsolvedGrid):
         for col in range(0, SUDOKU_PUZZLE_SIZE):
             # print("Processing column ...", col)
             solvedGridIndex = (row * SUDOKU_PUZZLE_SIZE) + col
-            # row == 8 and col == 7 and 
+            # row == 8 and col == 7 and
             if(unsolvedGrid[row][col] == 0):
                 log('debug', ("solvedGridIndex = ", solvedGridIndex))
                 # Unsolved cell. Solve it.
@@ -145,4 +184,9 @@ print("Starting Sudoku Solver ...")
 puzzle = generatePuzzle()
 print(puzzle)
 checkGrid(puzzle)
-solve(puzzle)
+# solve(puzzle)
+for row in range(0, SUDOKU_PUZZLE_SIZE):
+    for col in range(0, SUDOKU_PUZZLE_SIZE):
+        print("subcube of ", row, col, "=",getSubcubeByRowCol(row, col))
+
+print(getCellsBySubcubeNumber(5))
