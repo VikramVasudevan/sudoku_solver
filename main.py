@@ -1,22 +1,10 @@
 import json
 from time import monotonic
+import config
 
-SUDOKU_PUZZLE_SIZE = 9
-
-debug = False
-
-SUBCUBE_CONFIG = [
-    [(0, 2), (0, 2)],
-    [(0, 2), (3, 5)],
-    [(0, 2), (6, 8)],
-    [(3, 5), (0, 2)],
-    [(3, 5), (3, 5)],
-    [(3, 5), (6, 8)],
-    [(6, 8), (0, 2)],
-    [(6, 8), (3, 5)],
-    [(6, 8), (6, 8)],
-]
-
+SUDOKU_PUZZLE_SIZE = config.SUDOKU_PUZZLE_SIZE
+debug = config.debug 
+SUBCUBE_CONFIG = config.SUBCUBE_CONFIG
 
 def log(level, message):
     if(level == 'debug' and debug == True):
