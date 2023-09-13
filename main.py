@@ -125,10 +125,21 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
         return outcome
 
     # Find the subcube for this row and col
+    subcubeNumber = getSubcubeByRowCol(prmRow, prmCol)
+    cells = getCellsBySubcubeNumber(subcubeNumber)
     # Check if this value is already present in the entire subcube.
+    for cell in cells:
+        solvedGridIndex = (cell[0] * SUDOKU_PUZZLE_SIZE) + cell[1]
+        matched = prmSolvedGrid[solvedGridIndex]['value'] == prmPossibleValue
+        if(matched == True):
+            outcome = (False, 100)
+            endAlgorithm = True
+            break
 
+    if(endAlgorithm):
+        return outcome
+    
     return outcome
-
 
 def solve(unsolvedGrid):
     print("Solving ...", unsolvedGrid)
@@ -179,14 +190,16 @@ def solve(unsolvedGrid):
 
     print("Solved ...", json.dumps(solvedGrid, indent=1))
 
+def test():
+    for row in range(0, SUDOKU_PUZZLE_SIZE):
+        for col in range(0, SUDOKU_PUZZLE_SIZE):
+            print("subcube of ", row, col, "=",getSubcubeByRowCol(row, col))
+
+    print(getCellsBySubcubeNumber(5))
 
 print("Starting Sudoku Solver ...")
 puzzle = generatePuzzle()
 print(puzzle)
 checkGrid(puzzle)
-# solve(puzzle)
-for row in range(0, SUDOKU_PUZZLE_SIZE):
-    for col in range(0, SUDOKU_PUZZLE_SIZE):
-        print("subcube of ", row, col, "=",getSubcubeByRowCol(row, col))
-
-print(getCellsBySubcubeNumber(5))
+# test()
+solve(puzzle)
