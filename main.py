@@ -16,16 +16,7 @@ def log(level, message):
 def generatePuzzle():
     print("Generating puzzle ...")
     # hard coding for now instead of using a generator function.
-    puzzle = [[0, 0, 2, 0, 8, 0, 0, 6, 0],
-              [0, 5, 6, 9, 1, 7, 0, 3, 0],
-              [0, 4, 0, 0, 5, 0, 8, 7, 1],
-              [0, 9, 0, 0, 0, 0, 6, 0, 0],
-              [6, 7, 1, 0, 9, 5, 2, 0, 0],
-              [0, 0, 0, 0, 2, 0, 1, 0, 0],
-              [1, 6, 7, 0, 3, 0, 5, 9, 0],
-              [4, 8, 0, 0, 7, 0, 3, 0, 0],
-              [0, 2, 5, 4, 6, 0, 0, 0, 0]
-              ]
+    puzzle = config.puzzle
     print("Generated puzzle ...")
     return puzzle
 
