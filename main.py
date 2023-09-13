@@ -86,12 +86,13 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
         (prmPossibleValue, prmRow, prmCol))
     endAlgorithm = False
     outcome = (True, 0)
+    currentGridIndex = (prmRow * SUDOKU_PUZZLE_SIZE) + prmCol
     # Return a tuple containing
     # # - a boolean saying whether or not it is a possible value
     # # - a number indicating confidence level
 
     log("debug", "Checking all cells in the row ...")
-    # Check if this value is already present in the entire row
+    # SCENARIO 1: Check if this value is already present in the entire row
     for y in range(0, SUDOKU_PUZZLE_SIZE):
         solvedGridIndex = (prmRow * SUDOKU_PUZZLE_SIZE) + y
         matched = prmSolvedGrid[solvedGridIndex]['value'] == prmPossibleValue
@@ -106,7 +107,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
         return outcome
 
     log("debug", "Checking all cells in the column ...")
-    # Check if this value is already present in the entire column
+    # SCENARIO 2: Check if this value is already present in the entire column
     for x in range(0, SUDOKU_PUZZLE_SIZE):
         solvedGridIndex = (x * SUDOKU_PUZZLE_SIZE) + prmCol
         matched = prmSolvedGrid[solvedGridIndex]['value'] == prmPossibleValue
@@ -123,7 +124,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
     # Find the subcube for this row and col
     subcubeNumber = getSubcubeByRowCol(prmRow, prmCol)
     cells = getCellsBySubcubeNumber(subcubeNumber)
-    # Check if this value is already present in the entire subcube.
+    # SCENARIO 3: Check if this value is already present in the entire subcube.
     for cell in cells:
         solvedGridIndex = (cell[0] * SUDOKU_PUZZLE_SIZE) + cell[1]
         matched = prmSolvedGrid[solvedGridIndex]['value'] == prmPossibleValue
@@ -135,6 +136,47 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
     if(endAlgorithm):
         return outcome
 
+    # SCENARIO 4: if this possible value cannot be fit (impossible value) into another cell in the row, col or subcube, then it is a possible value for sure here
+    valueCannotBeFitAnywhereElse = True
+    for y in range(0, SUDOKU_PUZZLE_SIZE):
+        solvedGridIndex = (prmRow * SUDOKU_PUZZLE_SIZE) + y
+        # print(prmRow, prmCol, prmPossibleValue, "Checking in row ", currentGridIndex, solvedGridIndex, prmPossibleValue, "in",
+        #         prmSolvedGrid[solvedGridIndex]['impossibleValues'], prmPossibleValue in prmSolvedGrid[
+        #             solvedGridIndex]['impossibleValues'])
+
+        if(prmSolvedGrid[solvedGridIndex]['finalized'] == False and currentGridIndex != solvedGridIndex):
+            valueCannotBeFitAnywhereElse = valueCannotBeFitAnywhereElse and prmPossibleValue in prmSolvedGrid[
+                solvedGridIndex]['impossibleValues']
+    
+    valueCannotBeFitAnywhereElse = True            
+    for x in range(0, SUDOKU_PUZZLE_SIZE):
+        solvedGridIndex = (x * SUDOKU_PUZZLE_SIZE) + prmCol
+        # print(prmRow, prmCol, prmPossibleValue, "Checking in col ", currentGridIndex, solvedGridIndex,  prmPossibleValue, "in",
+        #         prmSolvedGrid[solvedGridIndex]['impossibleValues'], prmPossibleValue in prmSolvedGrid[
+        #             solvedGridIndex]['impossibleValues'])
+        if(prmSolvedGrid[solvedGridIndex]['finalized'] == False and currentGridIndex != solvedGridIndex):
+            valueCannotBeFitAnywhereElse = valueCannotBeFitAnywhereElse and prmPossibleValue in prmSolvedGrid[
+                solvedGridIndex]['impossibleValues']
+    
+    valueCannotBeFitAnywhereElse = True
+    for cell in cells:
+        solvedGridIndex = (cell[0] * SUDOKU_PUZZLE_SIZE) + cell[1]
+        # print(prmRow, prmCol, prmPossibleValue, "Checking in subcube ", currentGridIndex, solvedGridIndex, prmPossibleValue, "in",
+        #         prmSolvedGrid[solvedGridIndex]['impossibleValues'], prmPossibleValue in prmSolvedGrid[
+        #             solvedGridIndex]['impossibleValues'])
+        if(prmSolvedGrid[solvedGridIndex]['finalized'] == False and currentGridIndex != solvedGridIndex):
+            valueCannotBeFitAnywhereElse = valueCannotBeFitAnywhereElse and prmPossibleValue in prmSolvedGrid[
+                solvedGridIndex]['impossibleValues']
+
+    # print(prmRow, prmCol, prmPossibleValue,
+    #       "valueCannotBeFitAnywhereElse = ", valueCannotBeFitAnywhereElse)
+    if(valueCannotBeFitAnywhereElse):
+        outcome = (True, 100)
+        endAlgorithm = True
+
+    if(endAlgorithm):
+        return outcome
+
     return outcome
 
 
@@ -142,11 +184,12 @@ def formatGrid(unsolvedGrid):
     formattedGrid = []
     for row in range(0, SUDOKU_PUZZLE_SIZE):
         for col in range(0, SUDOKU_PUZZLE_SIZE):
+            currentVal = unsolvedGrid[row][col]
             obj = {
                 "possibleValues": [],
-                "impossibleValues": [],
-                "value": unsolvedGrid[row][col],
-                "finalized": False
+                "impossibleValues": [] if currentVal == 0 else [x for x in range(1, SUDOKU_PUZZLE_SIZE+1) if x != currentVal],
+                "value": currentVal,
+                "finalized": currentVal != 0
             }
             formattedGrid.append(obj)
 
@@ -171,6 +214,7 @@ def solve(unsolvedGrid, level):
                 # Unsolved cell. Solve it.
                 # print("This cell is unsolved. solving it ...", row, col)
                 for possibleValue in range(1, SUDOKU_PUZZLE_SIZE + 1):
+                # for possibleValue in range(1, 2):
                     # print("Checking if " + str(possibleValue) +
                     #      " would fit here ...")
                     outcome = isPossibleValue(
@@ -189,8 +233,6 @@ def solve(unsolvedGrid, level):
                         if (possibleValue not in solvedGrid[gridIndex]['impossibleValues']):
                             solvedGrid[gridIndex]['impossibleValues'].append(
                                 possibleValue)
-                # print("impossibleValues = ",
-                #      solvedGrid[solvedGridIndex]['impossibleValues'])
                 if(len(solvedGrid[gridIndex]['impossibleValues']) == SUDOKU_PUZZLE_SIZE - 1):
                     # these are  having exactly 8 impossible values indicating that only one possible value is there
                     # find that value and set it directly
@@ -208,7 +250,7 @@ def solve(unsolvedGrid, level):
             print("Attempting again ...", calculatePercentComplete(solvedGrid))
             solve(solvedGrid, level + 1)
         else:
-            print(json.dumps(solvedGrid,indent=1))
+            # print(json.dumps(solvedGrid, indent=1))
             print("****COULD NOT SOLVE IN %d ATTEMPTS****" %
                   (config.MAX_ATTEMPTS))
 
@@ -237,6 +279,7 @@ checkGrid(puzzle)
 # solved = isPuzzleSolved(formatGrid(puzzle))
 # print(solved)
 start_time = monotonic()
+# print(json.dumps(formatGrid(puzzle),indent=1))
 solve(formatGrid(puzzle), 0)
 print(f"Run time {monotonic() - start_time} seconds")
 # diff()
