@@ -27,7 +27,7 @@ def printGridState(grid, title, mode):
         f.write(title)
         for cell in grid:
             if(cell["index"] % SUDOKU_PUZZLE_SIZE == 0):
-                f.write("\n")
+                f.write("|\n")
             if(cell["row"] % 3 == 0 and cell["col"] == 0):
                 f.write(" _ _ _ _ _ _ _ _ _ _")
                 f.write("\n")
@@ -35,7 +35,7 @@ def printGridState(grid, title, mode):
                 f.write("|")
             f.write(str(cell['value']))
             f.write(' ')
-        f.write("\n")
+        f.write("|\n")
         f.write('#########################################################')
 
 
@@ -139,8 +139,8 @@ def calculatePercentComplete(grid):
 
 
 def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
-    log("debug", "Checking possible value %s for (%s,%s)" %
-        (prmPossibleValue, prmRow, prmCol))
+    log("info", prmRow, prmCol, "Checking possible value %s" %
+        (prmPossibleValue))
     endAlgorithm = False
     outcome = (True, 0)
     currentGridIndex = (prmRow * SUDOKU_PUZZLE_SIZE) + prmCol
@@ -153,8 +153,8 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
     for y in range(0, SUDOKU_PUZZLE_SIZE):
         solvedGridIndex = (prmRow * SUDOKU_PUZZLE_SIZE) + y
         matched = prmSolvedGrid[solvedGridIndex]['value'] == prmPossibleValue
-        log("info", ("solvedGrid[]", solvedGridIndex,
-                     prmSolvedGrid[solvedGridIndex]['value'], prmPossibleValue, matched))
+        log("debug", ("solvedGrid[]", solvedGridIndex,
+                      prmSolvedGrid[solvedGridIndex]['value'], prmPossibleValue, matched))
         if(y != prmCol and matched == True):
             outcome = (False, 100)
             endAlgorithm = True
@@ -170,7 +170,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
     for x in range(0, SUDOKU_PUZZLE_SIZE):
         solvedGridIndex = (x * SUDOKU_PUZZLE_SIZE) + prmCol
         matched = prmSolvedGrid[solvedGridIndex]['value'] == prmPossibleValue
-        log("debug", ("solvedGrid[]", solvedGridIndex,
+        log("info", ("solvedGrid[]", solvedGridIndex,
                       prmSolvedGrid[solvedGridIndex]['value'], prmPossibleValue, matched))
         if(x != prmRow and matched == True):
             outcome = (False, 100)
