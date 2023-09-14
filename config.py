@@ -49,5 +49,5 @@ expert_puzzle_2 = [
     [0,0,0,8,0,0,0,0,0]
 ]
 
-MAX_ATTEMPTS = 100
-SELECTED_PUZZLE = expert_puzzle_2
+MAX_ATTEMPTS = 20
+SELECTED_PUZZLE = expert_puzzle
