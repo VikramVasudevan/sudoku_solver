@@ -257,7 +257,7 @@ def solve(unsolvedGrid, level):
                         solvedGrid[gridIndex]['finalized'] = True
     if(isPuzzleSolved(solvedGrid)):
         logInfo("Solved ...", json.dumps(list(divide_chunks([cell['value'] for cell in solvedGrid],9)),indent=4))
-        storePuzzleState(json.dumps(list(divide_chunks([cell['value'] for cell in solvedGrid],9)),indent=4))
+        storePuzzleState(list(divide_chunks([cell['value'] for cell in solvedGrid],9)))
         logInfo("*****SOLVED*****")
     else:
         if(level < config.MAX_ATTEMPTS - 1):
@@ -269,11 +269,9 @@ def solve(unsolvedGrid, level):
             logInfo("****COULD NOT SOLVE IN %d ATTEMPTS****" %
                   (config.MAX_ATTEMPTS))
 
-
 def storePuzzleState(grid):
-    f = open("output.json", "w")
-    f.write(json.dumps(grid, indent=4))
-    f.close()
+    with open('output.json', 'w') as f:
+        json.dump(grid, f, indent=4)    
 
 def test():
     for row in range(0, SUDOKU_PUZZLE_SIZE):
