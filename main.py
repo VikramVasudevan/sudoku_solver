@@ -25,7 +25,7 @@ def divide_chunks(l, n):
 def printGridState(grid, title, mode):
     with open('grid_state.txt', mode) as f:
         f.write("\n")
-        f.write('#########################################################')
+        # f.write('#########################################################')
         f.write("\n")
         f.write(title + "\n")
         for cell in grid:
@@ -41,7 +41,8 @@ def printGridState(grid, title, mode):
             f.write(str("." if cell['value'] == 0 else cell['value']))
             f.write(' ')
         f.write("|\n")
-        f.write('#########################################################')
+        f.write(" - - - - - - - - - -")
+        # f.write('#########################################################')
 
 
 def log(level, *message):
