@@ -33,7 +33,7 @@ def printGridState(grid, title, mode):
                 f.write("\n")
             if(cell["col"] % 3 == 0):
                 f.write("|")
-            f.write(str(cell['value']))
+            f.write(str("-" if cell['value'] == 0 else cell['value']))
             f.write(' ')
         f.write("|\n")
         f.write('#########################################################')
