@@ -141,7 +141,8 @@ def calculatePercentComplete(grid):
     g_prev_percent_complete = g_percent_complete
     unsolved = len([x for x in grid if x['value'] == 0])
     totalGridCount = SUDOKU_PUZZLE_SIZE * SUDOKU_PUZZLE_SIZE
-    g_percent_complete = round((totalGridCount-unsolved)/totalGridCount * 100,2)
+    g_percent_complete = round(
+        (totalGridCount-unsolved)/totalGridCount * 100, 2)
     logInfo("unsolved = ", unsolved, "total = ",
             totalGridCount, "percent = ", g_percent_complete)
     return round(g_percent_complete, 2)
@@ -417,14 +418,14 @@ def solve(unsolvedGrid, level):
         if(level < config.MAX_ATTEMPTS - 1):
             logInfo("Attempting again ...", g_percent_complete)
             if(g_percent_complete == g_prev_percent_complete):
-                log("error", "STAGNATED at %f!" % g_percent_complete)
+                log("error", "STAGNATED at %f%% ..." % g_percent_complete)
                 finalize(solvedGrid, level)
             else:
                 solve(solvedGrid, level + 1)
         else:
             finalize(solvedGrid, level)
-            logInfo("****COULD NOT SOLVE IN %d ATTEMPTS****" %
-                    (config.MAX_ATTEMPTS))
+            log("error", "****COULD NOT SOLVE IN %d ATTEMPTS****" %
+                (config.MAX_ATTEMPTS))
 
 
 def finalize(grid, level):
