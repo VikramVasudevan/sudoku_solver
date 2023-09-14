@@ -110,7 +110,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
     # # - a boolean saying whether or not it is a possible value
     # # - a number indicating confidence level
 
-    log("debug", "Checking all cells in the row ...")
+    log("debug", "Checking all cells in the row ...", prmRow)
     # SCENARIO 1: Check if this value is already present in the entire row
     for y in range(0, SUDOKU_PUZZLE_SIZE):
         solvedGridIndex = (prmRow * SUDOKU_PUZZLE_SIZE) + y
@@ -125,7 +125,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
     if(endAlgorithm):
         return outcome
 
-    log("debug", "Checking all cells in the column ...")
+    log("debug", "Checking all cells in the column ...", prmCol)
     # SCENARIO 2: Check if this value is already present in the entire column
     for x in range(0, SUDOKU_PUZZLE_SIZE):
         solvedGridIndex = (x * SUDOKU_PUZZLE_SIZE) + prmCol
@@ -156,6 +156,8 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
         return outcome
 
     # SCENARIO 4: if this possible value cannot be fit (impossible value) into another cell in the row, col or subcube, then it is a possible value for sure here
+
+    # Scenario 4a:
     valueCannotBeFitAnywhereElse = True
     for y in range(0, SUDOKU_PUZZLE_SIZE):
         solvedGridIndex = (prmRow * SUDOKU_PUZZLE_SIZE) + y
@@ -167,6 +169,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
             valueCannotBeFitAnywhereElse = valueCannotBeFitAnywhereElse and prmPossibleValue in prmSolvedGrid[
                 solvedGridIndex]['impossibleValues']
 
+    # Scenario 4b:
     valueCannotBeFitAnywhereElse = True
     for x in range(0, SUDOKU_PUZZLE_SIZE):
         solvedGridIndex = (x * SUDOKU_PUZZLE_SIZE) + prmCol
@@ -177,6 +180,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
             valueCannotBeFitAnywhereElse = valueCannotBeFitAnywhereElse and prmPossibleValue in prmSolvedGrid[
                 solvedGridIndex]['impossibleValues']
 
+    # Scenario 4c:
     valueCannotBeFitAnywhereElse = True
     for cell in cells:
         solvedGridIndex = (cell[0] * SUDOKU_PUZZLE_SIZE) + cell[1]
