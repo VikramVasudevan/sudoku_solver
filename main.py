@@ -9,6 +9,9 @@ SUDOKU_PUZZLE_SIZE = config.SUDOKU_PUZZLE_SIZE
 debug = config.debug
 SUBCUBE_CONFIG = config.SUBCUBE_CONFIG
 
+g_prev_percent_complete = 0
+g_percent_complete = 0
+
 # Yield successive n-sized
 # chunks from l.
 
@@ -24,10 +27,12 @@ def printGridState(grid, title, mode):
         f.write("\n")
         f.write('#########################################################')
         f.write("\n")
-        f.write(title)
+        f.write(title + "\n")
         for cell in grid:
             if(cell["index"] % SUDOKU_PUZZLE_SIZE == 0):
-                f.write("|\n")
+                if(cell["row"] > 0):
+                    f.write("|")
+                f.write("\n")
             if(cell["row"] % 3 == 0 and cell["col"] == 0):
                 f.write(" _ _ _ _ _ _ _ _ _ _")
                 f.write("\n")
@@ -126,16 +131,20 @@ def getCellsBySubcubeNumberExcludingPlane(subcubeNumber, plane, planeNumber):
 
 def isPuzzleSolved(grid):
     solved = len([x for x in grid if x['value'] == 0]) == 0
+    calculatePercentComplete(grid)
     return solved
 
 
 def calculatePercentComplete(grid):
+    global g_prev_percent_complete
+    global g_percent_complete
+    g_prev_percent_complete = g_percent_complete
     unsolved = len([x for x in grid if x['value'] == 0])
     totalGridCount = SUDOKU_PUZZLE_SIZE * SUDOKU_PUZZLE_SIZE
-    percent = (totalGridCount-unsolved)/totalGridCount * 100
+    g_percent_complete = round((totalGridCount-unsolved)/totalGridCount * 100,2)
     logInfo("unsolved = ", unsolved, "total = ",
-            totalGridCount, "percent = ", percent)
-    return round(percent, 2)
+            totalGridCount, "percent = ", g_percent_complete)
+    return round(g_percent_complete, 2)
 
 
 def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
@@ -171,7 +180,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
         solvedGridIndex = (x * SUDOKU_PUZZLE_SIZE) + prmCol
         matched = prmSolvedGrid[solvedGridIndex]['value'] == prmPossibleValue
         log("info", ("solvedGrid[]", solvedGridIndex,
-                      prmSolvedGrid[solvedGridIndex]['value'], prmPossibleValue, matched))
+                     prmSolvedGrid[solvedGridIndex]['value'], prmPossibleValue, matched))
         if(x != prmRow and matched == True):
             outcome = (False, 100)
             endAlgorithm = True
@@ -348,10 +357,10 @@ def formatGrid(unsolvedGrid):
 
 def solve(unsolvedGrid, level):
     logInfo("Solving attempt %d [completion percent = %f]..." % (
-        level, calculatePercentComplete(unsolvedGrid)))
+        level, g_percent_complete))
     solvedGrid = unsolvedGrid
-    printGridState(solvedGrid, "Level-" + str(level) + "-" +
-                   str(calculatePercentComplete(solvedGrid)) + "% complete", "a")
+    printGridState(solvedGrid, "Level-" + str(level) + " ~ [" +
+                   str(g_percent_complete) + "% complete]", "a")
     # logInfo("solvedGrid", json.dumps(list(solvedGrid), indent=1))
 
     for row in range(0, SUDOKU_PUZZLE_SIZE):
@@ -402,20 +411,26 @@ def solve(unsolvedGrid, level):
         storePuzzleState(
             list(divide_chunks([cell['value'] for cell in solvedGrid], 9)))
         printGridState(solvedGrid, "Level-" + str(level) + "-" +
-                       str(calculatePercentComplete(solvedGrid)) + "% complete", "a")
+                       str(g_percent_complete) + "% complete", "a")
         logInfo("*****SOLVED*****")
     else:
         if(level < config.MAX_ATTEMPTS - 1):
-            logInfo("Attempting again ...",
-                    calculatePercentComplete(solvedGrid))
-            solve(solvedGrid, level + 1)
+            logInfo("Attempting again ...", g_percent_complete)
+            if(g_percent_complete == g_prev_percent_complete):
+                log("error", "STAGNATED at %f!" % g_percent_complete)
+                finalize(solvedGrid, level)
+            else:
+                solve(solvedGrid, level + 1)
         else:
-            # logInfo(json.dumps(solvedGrid, indent=1))
-            storePuzzleState(solvedGrid)
-            printGridState(solvedGrid, "Level-" + str(level) + "-" +
-                           str(calculatePercentComplete(solvedGrid)) + "% complete", "a")
+            finalize(solvedGrid, level)
             logInfo("****COULD NOT SOLVE IN %d ATTEMPTS****" %
                     (config.MAX_ATTEMPTS))
+
+
+def finalize(grid, level):
+    storePuzzleState(grid)
+    printGridState(grid, "Level-" + str(level) + "-" +
+                   str(g_percent_complete) + "% complete", "a")
 
 
 def storePuzzleState(grid):
@@ -450,8 +465,9 @@ start_time = monotonic()
 # logInfo(json.dumps(formatGrid(puzzle),indent=1))
 ##################################################################
 puzzle = formatGrid(puzzle)
+g_percent_complete = calculatePercentComplete(puzzle)
 printGridState(puzzle, "INITIAL STATE - " +
-               str(calculatePercentComplete(puzzle)) + "% complete", "w")
+               str(g_percent_complete) + "% complete", "w")
 solve(puzzle, 0)
 ##################################################################
 logInfo(f"Run time {monotonic() - start_time} seconds")
