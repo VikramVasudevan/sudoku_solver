@@ -2,7 +2,8 @@ import json
 from time import monotonic
 import config
 import logging
-logging.basicConfig(filename='main.log', encoding='utf-8', level=logging.DEBUG, filemode="w")
+logging.basicConfig(filename='main.log', encoding='utf-8',
+                    level=logging.DEBUG, filemode="w")
 
 SUDOKU_PUZZLE_SIZE = config.SUDOKU_PUZZLE_SIZE
 debug = config.debug
@@ -10,10 +11,13 @@ SUBCUBE_CONFIG = config.SUBCUBE_CONFIG
 
 # Yield successive n-sized
 # chunks from l.
+
+
 def divide_chunks(l, n):
     # looping till length l
-    for i in range(0, len(l), n): 
+    for i in range(0, len(l), n):
         yield l[i:i + n]
+
 
 def log(level, message):
     if(level == 'debug'):
@@ -24,8 +28,10 @@ def log(level, message):
     else:
         logging.info(message)
 
+
 def logInfo(*message):
     logging.info(message)
+
 
 def generatePuzzle():
     logInfo("Generating puzzle ...")
@@ -90,7 +96,7 @@ def calculatePercentComplete(grid):
     totalGridCount = SUDOKU_PUZZLE_SIZE * SUDOKU_PUZZLE_SIZE
     percent = (totalGridCount-unsolved)/totalGridCount * 100
     logInfo("unsolved = ", unsolved, "total = ",
-          totalGridCount, "percent = ", percent)
+            totalGridCount, "percent = ", percent)
     return percent
 
 
@@ -160,8 +166,8 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
         if(prmSolvedGrid[solvedGridIndex]['finalized'] == False and currentGridIndex != solvedGridIndex):
             valueCannotBeFitAnywhereElse = valueCannotBeFitAnywhereElse and prmPossibleValue in prmSolvedGrid[
                 solvedGridIndex]['impossibleValues']
-    
-    valueCannotBeFitAnywhereElse = True            
+
+    valueCannotBeFitAnywhereElse = True
     for x in range(0, SUDOKU_PUZZLE_SIZE):
         solvedGridIndex = (x * SUDOKU_PUZZLE_SIZE) + prmCol
         # logInfo(prmRow, prmCol, prmPossibleValue, "Checking in col ", currentGridIndex, solvedGridIndex,  prmPossibleValue, "in",
@@ -170,7 +176,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
         if(prmSolvedGrid[solvedGridIndex]['finalized'] == False and currentGridIndex != solvedGridIndex):
             valueCannotBeFitAnywhereElse = valueCannotBeFitAnywhereElse and prmPossibleValue in prmSolvedGrid[
                 solvedGridIndex]['impossibleValues']
-    
+
     valueCannotBeFitAnywhereElse = True
     for cell in cells:
         solvedGridIndex = (cell[0] * SUDOKU_PUZZLE_SIZE) + cell[1]
@@ -198,7 +204,15 @@ def formatGrid(unsolvedGrid):
     for row in range(0, SUDOKU_PUZZLE_SIZE):
         for col in range(0, SUDOKU_PUZZLE_SIZE):
             currentVal = unsolvedGrid[row][col]
+            subcubeNumber = getSubcubeByRowCol(row, col)
             obj = {
+                "index": (row * SUDOKU_PUZZLE_SIZE) + col,
+                "row": row,
+                "col": col,
+                "subcube": {
+                    "index": subcubeNumber,
+                    "cells": getCellsBySubcubeNumber(subcubeNumber),
+                },
                 "possibleValues": [],
                 "impossibleValues": [] if currentVal == 0 else [x for x in range(1, SUDOKU_PUZZLE_SIZE+1) if x != currentVal],
                 "value": currentVal,
@@ -227,7 +241,7 @@ def solve(unsolvedGrid, level):
                 # Unsolved cell. Solve it.
                 # logInfo("This cell is unsolved. solving it ...", row, col)
                 for possibleValue in range(1, SUDOKU_PUZZLE_SIZE + 1):
-                # for possibleValue in range(1, 2):
+                    # for possibleValue in range(1, 2):
                     # logInfo("Checking if " + str(possibleValue) +
                     #      " would fit here ...")
                     outcome = isPossibleValue(
@@ -256,22 +270,27 @@ def solve(unsolvedGrid, level):
                         solvedGrid[gridIndex]['value'] = possibleValues[0]
                         solvedGrid[gridIndex]['finalized'] = True
     if(isPuzzleSolved(solvedGrid)):
-        logInfo("Solved ...", json.dumps(list(divide_chunks([cell['value'] for cell in solvedGrid],9)),indent=4))
-        storePuzzleState(list(divide_chunks([cell['value'] for cell in solvedGrid],9)))
+        logInfo("Solved ...", json.dumps(
+            list(divide_chunks([cell['value'] for cell in solvedGrid], 9)), indent=4))
+        storePuzzleState(
+            list(divide_chunks([cell['value'] for cell in solvedGrid], 9)))
         logInfo("*****SOLVED*****")
     else:
         if(level < config.MAX_ATTEMPTS - 1):
-            logInfo("Attempting again ...", calculatePercentComplete(solvedGrid))
+            logInfo("Attempting again ...",
+                    calculatePercentComplete(solvedGrid))
             solve(solvedGrid, level + 1)
         else:
             # logInfo(json.dumps(solvedGrid, indent=1))
             storePuzzleState(solvedGrid)
             logInfo("****COULD NOT SOLVE IN %d ATTEMPTS****" %
-                  (config.MAX_ATTEMPTS))
+                    (config.MAX_ATTEMPTS))
+
 
 def storePuzzleState(grid):
     with open('output.json', 'w') as f:
-        json.dump(grid, f, indent=4)    
+        json.dump(grid, f, indent=4)
+
 
 def test():
     for row in range(0, SUDOKU_PUZZLE_SIZE):
