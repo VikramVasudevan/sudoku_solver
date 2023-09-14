@@ -164,7 +164,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
     for y in range(0, SUDOKU_PUZZLE_SIZE):
         solvedGridIndex = (prmRow * SUDOKU_PUZZLE_SIZE) + y
         matched = prmSolvedGrid[solvedGridIndex]['value'] == prmPossibleValue
-        log("debug", ("solvedGrid[]", solvedGridIndex,
+        log("info", (prmRow, prmCol, "SCENARIO-1", solvedGridIndex,
                       prmSolvedGrid[solvedGridIndex]['value'], prmPossibleValue, matched))
         if(y != prmCol and matched == True):
             outcome = (False, 100)
@@ -181,7 +181,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
     for x in range(0, SUDOKU_PUZZLE_SIZE):
         solvedGridIndex = (x * SUDOKU_PUZZLE_SIZE) + prmCol
         matched = prmSolvedGrid[solvedGridIndex]['value'] == prmPossibleValue
-        log("info", ("solvedGrid[]", solvedGridIndex,
+        log("info", (prmRow,prmCol, "SCENARIO-2", solvedGridIndex,
                      prmSolvedGrid[solvedGridIndex]['value'], prmPossibleValue, matched))
         if(x != prmRow and matched == True):
             outcome = (False, 100)
@@ -200,6 +200,8 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
     for cell in cells:
         solvedGridIndex = (cell[0] * SUDOKU_PUZZLE_SIZE) + cell[1]
         matched = prmSolvedGrid[solvedGridIndex]['value'] == prmPossibleValue
+        log("info", (prmRow,prmCol, "SCENARIO-3", solvedGridIndex,
+                     prmSolvedGrid[solvedGridIndex]['value'], prmPossibleValue, matched))
         if(matched == True):
             outcome = (False, 100)
             endAlgorithm = True
@@ -216,13 +218,11 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
     valueCannotBeFitAnywhereElse = True
     for y in range(0, SUDOKU_PUZZLE_SIZE):
         solvedGridIndex = (prmRow * SUDOKU_PUZZLE_SIZE) + y
-        # logInfo(prmRow, prmCol, prmPossibleValue, "Checking in row ", currentGridIndex, solvedGridIndex, prmPossibleValue, "in",
-        #         prmSolvedGrid[solvedGridIndex]['impossibleValues'], prmPossibleValue in prmSolvedGrid[
-        #             solvedGridIndex]['impossibleValues'])
-
         if(prmSolvedGrid[solvedGridIndex]['finalized'] == False and currentGridIndex != solvedGridIndex):
-            valueCannotBeFitAnywhereElse = valueCannotBeFitAnywhereElse and prmPossibleValue in prmSolvedGrid[
-                solvedGridIndex]['impossibleValues']
+            matched = prmPossibleValue in prmSolvedGrid[solvedGridIndex]['impossibleValues']
+            log("info", (prmRow,prmCol, "SCENARIO-4a", solvedGridIndex,
+                        prmSolvedGrid[solvedGridIndex]['impossibleValues'], prmPossibleValue, matched))
+            valueCannotBeFitAnywhereElse = valueCannotBeFitAnywhereElse and matched
     if(valueCannotBeFitAnywhereElse):
         outcome = (True, 100)
         endAlgorithm = True
@@ -330,6 +330,8 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
                     prmPossibleValue, '5b', outcome)
             return outcome
 
+    # Scenario 5c : If a possible value is impossible to fill any cell in its x, y planes, then it is 100% possible here.
+
     return outcome
 
 
@@ -410,14 +412,12 @@ def solve(unsolvedGrid, level):
     if(isPuzzleSolved(solvedGrid)):
         logInfo("Solved ...", json.dumps(
             list(divide_chunks([cell['value'] for cell in solvedGrid], 9)), indent=4))
-        storePuzzleState(
-            list(divide_chunks([cell['value'] for cell in solvedGrid], 9)))
-        printGridState(solvedGrid, "Level-" + str(level) + "-" +
-                       str(g_percent_complete) + "% complete", "a")
+        finalize(solvedGrid, level)
         logInfo("*****SOLVED*****")
     else:
         if(level < config.MAX_ATTEMPTS - 1):
             logInfo("Attempting again ...", g_percent_complete)
+            g_prev_percent_complete = g_percent_complete - 1
             if(g_percent_complete == g_prev_percent_complete):
                 log("error", "STAGNATED at %f%% ..." % g_percent_complete)
                 finalize(solvedGrid, level)
