@@ -271,7 +271,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
 
     # Scenario 5: check if this possible value can ONLY occur in this x or y plane (because it cannot occur anywhere else in the subcubes of those cells)
     # Scenario 5a: x plane
-    if False:
+    if True:
         for y in range(0, SUDOKU_PUZZLE_SIZE):
             subcubeNumberOfOtherCell = getSubcubeByRowCol(prmRow, y)
             # ignore current subcube
@@ -389,17 +389,23 @@ def solve(unsolvedGrid, level):
                             logInfo(row, col, "setting to ", possibleValue)
                             solvedGrid[gridIndex]["value"] = possibleValue
                             solvedGrid[gridIndex]["finalized"] = True
+                            solvedGrid[gridIndex]["impossibleValues"] = [x for x in range(1,SUDOKU_PUZZLE_SIZE +1) if x != possibleValue]
                         elif(outcome[1] > 0):
                             if possibleValue not in solvedGrid[gridIndex]['possibleValues']:
                                 solvedGrid[gridIndex]['possibleValues'].append(
                                     possibleValue)
                     elif(outcome[0] == False and outcome[1] == 100):
                         # this is an impossible value with 100% confidence. just add to array
+                        logInfo(row, col, "level = ", level, "Adding", possibleValue,
+                                "to impossibleValues")
+
                         if (possibleValue not in solvedGrid[gridIndex]['impossibleValues']):
-                            logInfo(row, col, "level = ", level, "Adding", possibleValue,
-                                    "to impossibleValues")
                             solvedGrid[gridIndex]['impossibleValues'].append(
                                 possibleValue)
+                        else:
+                            logInfo(row, col, gridIndex, "level = ", level, "Value", possibleValue,
+                                    "already exists", solvedGrid[gridIndex]['impossibleValues'])
+
                 if(len(solvedGrid[gridIndex]['impossibleValues']) == SUDOKU_PUZZLE_SIZE - 1):
                     # these are  having exactly 8 impossible values indicating that only one possible value is there
                     # find that value and set it directly
