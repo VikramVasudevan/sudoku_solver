@@ -454,19 +454,16 @@ def solve(unsolvedGrid, level):
             list(divide_chunks([cell['value'] for cell in solvedGrid], 9)), indent=4))
         finalize(solvedGrid, level)
         logInfo("*****SOLVED*****")
+        return True
     else:
         if(level < config.MAX_ATTEMPTS - 1):
             logInfo("Attempting again ...", g_percent_complete)
-            g_prev_percent_complete = g_percent_complete - 1
-            if(g_percent_complete == g_prev_percent_complete):
-                log("error", "STAGNATED at %f%% ..." % g_percent_complete)
-                finalize(solvedGrid, level)
-            else:
-                solve(solvedGrid, level + 1)
+            return solve(solvedGrid, level + 1)
         else:
             finalize(solvedGrid, level)
             log("error", "****COULD NOT SOLVE IN %d ATTEMPTS****" %
                 (config.MAX_ATTEMPTS))
+            return False
 
 
 def finalize(grid, level):
@@ -495,7 +492,46 @@ def diff():
     value = [x for x in list2 if x not in list1]
     logInfo(value)
 
+def guess(prmGrid, level):
+    # Before starting to guess, take backup of grid state
+    if(calculatePercentComplete(prmGrid) == 100):
+        print("*** GAME ALREADY SOLVED ***")
+        return True
+    print("guessing game begins level ", level, g_percent_complete, "% complete")
+    gridBackup = json.dumps(prmGrid)
+    grid = json.loads(gridBackup)
 
+    # Find the cell with lowest number of possible values greater than 1
+    cellWithLowestPossibleValues = sorted(grid,key=lambda cell : 0 if cell["finalized"] else len(cell["impossibleValues"]) )[len(grid) - 1]
+    print("cellWithLowestPossibleValues = ", cellWithLowestPossibleValues)
+    l_prev_percent_complete = 0
+    # Start guessing with this cell.
+    for possibleValue in [x for x in range(1, SUDOKU_PUZZLE_SIZE + 1) if x not in cellWithLowestPossibleValues["impossibleValues"]]:
+        #Reset grid from backup
+        grid = json.loads(gridBackup)
+        print("Guessing Possible Value", possibleValue)
+        grid[cellWithLowestPossibleValues["index"]]["value"] = possibleValue
+        grid[cellWithLowestPossibleValues["index"]]["finalized"] = True
+        grid[cellWithLowestPossibleValues["index"]]["impossibleValues"] = [x for x in range(1, SUDOKU_PUZZLE_SIZE + 1) if x != possibleValue]
+
+        # now solve grid
+        solved = solve(grid, 0)
+        print("solved = ",solved)
+        print("Percent complete = ",calculatePercentComplete(grid))
+        print("g_percent_complete = ", g_percent_complete)
+        if(solved or g_percent_complete == 100):
+            print("**** ALL DONE ****")
+            return True
+        if(g_percent_complete < 100.0 and g_percent_complete > l_prev_percent_complete):
+            print("There is improvement but still not solved!")
+            print("Guessing again with this new grid")
+            l_prev_percent_complete = g_percent_complete
+            print("before guess g_percent_complete = ", g_percent_complete)
+            return guess(grid, level + 1)
+
+    print("Final Percent complete = ",calculatePercentComplete(grid))
+    
+############################################################################################
 logInfo("Starting Sudoku Solver ...")
 puzzle = generatePuzzle()
 logInfo(puzzle)
@@ -510,7 +546,7 @@ puzzle = formatGrid(puzzle)
 g_percent_complete = calculatePercentComplete(puzzle)
 printGridState(puzzle, "INITIAL STATE - " +
                str(g_percent_complete) + "% complete", "w")
-solve(puzzle, 0)
+solved = solve(puzzle, 0)
 ##################################################################
 logInfo(f"Run time {monotonic() - start_time} seconds")
 # diff()
@@ -519,3 +555,6 @@ print("==> See main.log for log output")
 print("==> See output.json for puzzle state")
 # print(getCellsBySubcubeNumberExcludingPlane(0, "x", 0))
 # printGridState(formatGrid(puzzle))
+if(not solved):
+    print("EXHAUSTED ALL RULES ... TRYING TO GUESS NOW ...")
+    guess(puzzle, 0)
