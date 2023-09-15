@@ -25,7 +25,25 @@ def divide_chunks(l, n):
 def printGridState(grid, title, mode):
     with open('grid_state.txt', mode) as f:
         f.write("\n")
-        # f.write('#########################################################')
+        f.write(title + "\n")
+        for cell in grid:
+            if(cell["index"] % SUDOKU_PUZZLE_SIZE == 0):
+                if(cell["row"] > 0):
+                    f.write("|")
+                f.write("\n")
+            if(cell["row"] % 3 == 0 and cell["col"] == 0):
+                # For demarcating every 3rd row.
+                f.write(" _ _ _ _ _ _ _ _ _ _\n")
+            if(cell["col"] % 3 == 0):
+                f.write("|")
+            f.write(str("." if cell['value'] == 0 else cell['value']))
+            f.write(' ')
+        f.write("|\n")
+        f.write(" - - - - - - - - - -")
+    printGridStateForPossibleValues(grid, title + " - POSSIBLE VALUES", mode)
+
+def printGridStateForPossibleValues(grid, title, mode):
+    with open('grid_state.txt', mode) as f:
         f.write("\n")
         f.write(title + "\n")
         for cell in grid:
@@ -34,16 +52,15 @@ def printGridState(grid, title, mode):
                     f.write("|")
                 f.write("\n")
             if(cell["row"] % 3 == 0 and cell["col"] == 0):
-                f.write(" _ _ _ _ _ _ _ _ _ _")
-                f.write("\n")
+                # For demarcating every 3rd row.
+                f.write("_".ljust(20 * SUDOKU_PUZZLE_SIZE + 20,"_") +  "\n")
             if(cell["col"] % 3 == 0):
                 f.write("|")
-            f.write(str("." if cell['value'] == 0 else cell['value']))
+            
+            f.write(str(" ".join([str(x) for x in [y for y in range(1,SUDOKU_PUZZLE_SIZE+1) if y not in cell['impossibleValues']]]).ljust(20," ")))
             f.write(' ')
         f.write("|\n")
-        f.write(" - - - - - - - - - -")
-        # f.write('#########################################################')
-
+        f.write("-".ljust(20 * SUDOKU_PUZZLE_SIZE + 20, "-"))
 
 def log(level, *message):
     if(level == 'debug'):
@@ -112,6 +129,23 @@ def getCellsBySubcubeNumber(subcubeNumber):
     return cells
 
 
+def getValuesInCells(grid, cells):
+    values = []
+    for cell in cells:
+        gridIndex = (cell[0] * SUDOKU_PUZZLE_SIZE) + cell[1]
+        values.append(grid[gridIndex]["value"])
+    return values
+
+
+def getImpossibleValuesInCells(grid, cells):
+    impossibleValues = []
+    for cell in cells:
+        gridIndex = (cell[0] * SUDOKU_PUZZLE_SIZE) + cell[1]
+        if(grid[gridIndex]["finalized"] == False):
+            impossibleValues.append(grid[gridIndex]["impossibleValues"])
+    return impossibleValues
+
+
 def getCellsBySubcubeNumberExcludingPlane(subcubeNumber, plane, planeNumber):
     # print("getting cells for subcube", subcubeNumber,plane, planeNumber)
     subcube = SUBCUBE_CONFIG[subcubeNumber]
@@ -165,7 +199,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
         solvedGridIndex = (prmRow * SUDOKU_PUZZLE_SIZE) + y
         matched = prmSolvedGrid[solvedGridIndex]['value'] == prmPossibleValue
         log("info", (prmRow, prmCol, "SCENARIO-1", solvedGridIndex,
-                      prmSolvedGrid[solvedGridIndex]['value'], prmPossibleValue, matched))
+                     prmSolvedGrid[solvedGridIndex]['value'], prmPossibleValue, matched))
         if(y != prmCol and matched == True):
             outcome = (False, 100)
             endAlgorithm = True
@@ -181,7 +215,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
     for x in range(0, SUDOKU_PUZZLE_SIZE):
         solvedGridIndex = (x * SUDOKU_PUZZLE_SIZE) + prmCol
         matched = prmSolvedGrid[solvedGridIndex]['value'] == prmPossibleValue
-        log("info", (prmRow,prmCol, "SCENARIO-2", solvedGridIndex,
+        log("info", (prmRow, prmCol, "SCENARIO-2", solvedGridIndex,
                      prmSolvedGrid[solvedGridIndex]['value'], prmPossibleValue, matched))
         if(x != prmRow and matched == True):
             outcome = (False, 100)
@@ -200,7 +234,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
     for cell in cells:
         solvedGridIndex = (cell[0] * SUDOKU_PUZZLE_SIZE) + cell[1]
         matched = prmSolvedGrid[solvedGridIndex]['value'] == prmPossibleValue
-        log("info", (prmRow,prmCol, "SCENARIO-3", solvedGridIndex,
+        log("info", (prmRow, prmCol, "SCENARIO-3", solvedGridIndex,
                      prmSolvedGrid[solvedGridIndex]['value'], prmPossibleValue, matched))
         if(matched == True):
             outcome = (False, 100)
@@ -220,8 +254,8 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
         solvedGridIndex = (prmRow * SUDOKU_PUZZLE_SIZE) + y
         if(prmSolvedGrid[solvedGridIndex]['finalized'] == False and currentGridIndex != solvedGridIndex):
             matched = prmPossibleValue in prmSolvedGrid[solvedGridIndex]['impossibleValues']
-            log("info", (prmRow,prmCol, "SCENARIO-4a", solvedGridIndex,
-                        prmSolvedGrid[solvedGridIndex]['impossibleValues'], prmPossibleValue, matched))
+            log("info", (prmRow, prmCol, "SCENARIO-4a", solvedGridIndex,
+                         prmSolvedGrid[solvedGridIndex]['impossibleValues'], prmPossibleValue, matched))
             valueCannotBeFitAnywhereElse = valueCannotBeFitAnywhereElse and matched
     if(valueCannotBeFitAnywhereElse):
         outcome = (True, 100)
@@ -271,7 +305,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
 
     # Scenario 5: check if this possible value can ONLY occur in this x or y plane (because it cannot occur anywhere else in the subcubes of those cells)
     # Scenario 5a: x plane
-    if False:
+    if True:
         for y in range(0, SUDOKU_PUZZLE_SIZE):
             subcubeNumberOfOtherCell = getSubcubeByRowCol(prmRow, y)
             # ignore current subcube
@@ -279,19 +313,19 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
                 continue
             cellsinThatSubcube = getCellsBySubcubeNumberExcludingPlane(
                 subcubeNumberOfOtherCell, "x", prmRow)
-            log("info", prmRow, prmCol, "possibleValue=", prmPossibleValue,
-                "cellsinThatSubcube = ", "plane-x-", y, "subcubeNumberOfOtherCell = ", subcubeNumberOfOtherCell, cellsinThatSubcube)
+            log("info", prmRow, prmCol,
+                "SCENARIO-5a", "plane-x-", y, subcubeNumberOfOtherCell, cellsinThatSubcube, "values = ", getValuesInCells(prmSolvedGrid, cellsinThatSubcube), "impossibleValues = ", getImpossibleValuesInCells(prmSolvedGrid, cellsinThatSubcube))
+            breakOuterLoop = False
             for cell in cellsinThatSubcube:
                 solvedGridIndex = (cell[0] * SUDOKU_PUZZLE_SIZE) + cell[1]
-                if(prmSolvedGrid[solvedGridIndex]['finalized'] == False):
-                    if(prmPossibleValue not in prmSolvedGrid[solvedGridIndex]['impossibleValues']):
-                        outcome = (False, 0)
-                        endAlgorithm = True
-                        break
-            if(endAlgorithm):
+                if(prmPossibleValue not in prmSolvedGrid[solvedGridIndex]['impossibleValues']):
+                    outcome = (False, 0)
+                    breakOuterLoop  = True
+                    break
+            if(breakOuterLoop):
                 break
             else:
-                outcome = (True, 100)
+                outcome = (False, 100)
                 endAlgorithm = True
                 break
 
@@ -300,7 +334,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
                     prmPossibleValue, '5a', outcome)
             return outcome
 
-    if False:
+    if True:
         # Scenario 5b: y plane
         for x in range(0, SUDOKU_PUZZLE_SIZE):
             subcubeNumberOfOtherCell = getSubcubeByRowCol(x, prmCol)
@@ -310,18 +344,18 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
             cellsinThatSubcube = getCellsBySubcubeNumberExcludingPlane(
                 subcubeNumberOfOtherCell, "y", prmCol)
             log("info", prmRow, prmCol,
-                "cellsinThatSubcube = ", "plane-y-", x, subcubeNumberOfOtherCell, cellsinThatSubcube)
+                "SCENARIO-5b", "plane-y-", x, subcubeNumberOfOtherCell, cellsinThatSubcube, "values = ", getValuesInCells(prmSolvedGrid, cellsinThatSubcube), "impossibleValues = ", getImpossibleValuesInCells(prmSolvedGrid, cellsinThatSubcube))
+            breakOuterLoop = False
             for cell in cellsinThatSubcube:
                 solvedGridIndex = (cell[0] * SUDOKU_PUZZLE_SIZE) + cell[1]
-                if(prmSolvedGrid[solvedGridIndex]['finalized'] == False):
-                    if(prmPossibleValue not in prmSolvedGrid[solvedGridIndex]['impossibleValues']):
-                        outcome = (False, 0)
-                        endAlgorithm = True
-                        break
-            if(endAlgorithm):
+                if(prmPossibleValue not in prmSolvedGrid[solvedGridIndex]['impossibleValues']):
+                    outcome = (False, 0)
+                    breakOuterLoop = True
+                    break
+            if(breakOuterLoop):
                 break
             else:
-                outcome = (True, 100)
+                outcome = (False, 100)
                 endAlgorithm = True
                 break
 
@@ -329,8 +363,6 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
             logInfo(prmRow, prmCol, "outcome for possible value",
                     prmPossibleValue, '5b', outcome)
             return outcome
-
-    # Scenario 5c : If a possible value is impossible to fill any cell in its x, y planes, then it is 100% possible here.
 
     return outcome
 
@@ -389,7 +421,9 @@ def solve(unsolvedGrid, level):
                             logInfo(row, col, "setting to ", possibleValue)
                             solvedGrid[gridIndex]["value"] = possibleValue
                             solvedGrid[gridIndex]["finalized"] = True
-                            solvedGrid[gridIndex]["impossibleValues"] = [x for x in range(1,SUDOKU_PUZZLE_SIZE +1) if x != possibleValue]
+                            solvedGrid[gridIndex]["impossibleValues"] = [
+                                x for x in range(1, SUDOKU_PUZZLE_SIZE + 1) if x != possibleValue]
+                            break
                         elif(outcome[1] > 0):
                             if possibleValue not in solvedGrid[gridIndex]['possibleValues']:
                                 solvedGrid[gridIndex]['possibleValues'].append(
