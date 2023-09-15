@@ -2,3 +2,6 @@ __pycache__/config.cpython-39.pyc
 output.json
 main.log
 grid_state.txt
+grid_state copy.txt
+main copy.log
+output copy.json
