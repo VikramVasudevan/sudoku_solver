@@ -535,7 +535,7 @@ def guess(prmGrid, level):
 logInfo("Starting Sudoku Solver ...")
 puzzle = generatePuzzle()
 logInfo(puzzle)
-checkGrid(puzzle)
+# checkGrid(puzzle)
 # test()
 # solved = isPuzzleSolved(formatGrid(puzzle))
 # logInfo(solved)
