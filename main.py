@@ -271,7 +271,7 @@ def isPossibleValue(prmPossibleValue, prmSolvedGrid, prmRow, prmCol):
 
     # Scenario 5: check if this possible value can ONLY occur in this x or y plane (because it cannot occur anywhere else in the subcubes of those cells)
     # Scenario 5a: x plane
-    if True:
+    if False:
         for y in range(0, SUDOKU_PUZZLE_SIZE):
             subcubeNumberOfOtherCell = getSubcubeByRowCol(prmRow, y)
             # ignore current subcube
