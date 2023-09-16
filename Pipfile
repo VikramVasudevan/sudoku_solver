@@ -7,6 +7,8 @@ name = "pypi"
 gtts = "*"
 pyttsx3 = "*"
 playsound = "==1.2.2"
+speechrecognition = "*"
+pyaudio = "*"
 
 [dev-packages]
 
