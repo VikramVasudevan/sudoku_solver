@@ -547,7 +547,7 @@ puzzle = formatGrid(puzzle)
 g_percent_complete = calculatePercentComplete(puzzle)
 printGridState(puzzle, "INITIAL STATE - " +
                str(g_percent_complete) + "% complete", "w")
-play("Welcome to Sudoku! Please wait while I solve your puzzle ...","_audio_welcome_")
+play("Welcome to Sudoku! Please wait while I solve your puzzle ...","_audio_welcome")
 printGridToConsole(puzzle)
 start_time = monotonic()
 solved = False
