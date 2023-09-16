@@ -4,6 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+gtts = "*"
+playsound = "*"
+pyttsx3 = "*"
 
 [dev-packages]
 
