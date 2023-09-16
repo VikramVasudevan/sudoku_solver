@@ -2,6 +2,8 @@ import json
 from time import monotonic
 import config
 import logging
+from common import callOut, play, printGridToConsole
+
 logging.basicConfig(filename='main.log', encoding='utf-8',
                     level=logging.DEBUG, filemode="w")
 
@@ -539,23 +541,32 @@ logInfo(puzzle)
 # test()
 # solved = isPuzzleSolved(formatGrid(puzzle))
 # logInfo(solved)
-start_time = monotonic()
 # logInfo(json.dumps(formatGrid(puzzle),indent=1))
 ##################################################################
 puzzle = formatGrid(puzzle)
 g_percent_complete = calculatePercentComplete(puzzle)
 printGridState(puzzle, "INITIAL STATE - " +
                str(g_percent_complete) + "% complete", "w")
+play("Welcome to Sudoku! Please wait while I solve your puzzle ...","_audio_welcome_")
+printGridToConsole(puzzle)
+start_time = monotonic()
+solved = False
 solved = solve(puzzle, 0)
 ##################################################################
 logInfo(f"Run time {monotonic() - start_time} seconds")
 # diff()
 # logInfo(calculatePercentComplete(formatGrid(puzzle)))
-print("==> See main.log for log output")
-print("==> See output.json for grid in json form")
-print("==> See grid_state.txt for grid state")
 # print(getCellsBySubcubeNumberExcludingPlane(0, "x", 0))
 # printGridState(formatGrid(puzzle))
 if(not solved):
     log("info","EXHAUSTED ALL RULES ... TRYING TO GUESS NOW ...")
     guess(puzzle, 0)
+else:
+    play("PUZZLE SOLVED! in " + f"{round(monotonic() - start_time,2)} seconds", "_audio_post_solve")
+
+callOut(puzzle)
+
+print("******************************************")
+print("==> See main.log for log output")
+print("==> See output.json for grid in json form")
+print("==> See grid_state.txt for grid state")

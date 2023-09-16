@@ -5,8 +5,8 @@ name = "pypi"
 
 [packages]
 gtts = "*"
-playsound = "*"
 pyttsx3 = "*"
+playsound = "==1.2.2"
 
 [dev-packages]
 
