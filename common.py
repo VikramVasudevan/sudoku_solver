@@ -42,7 +42,7 @@ def callOut(grid):
             text = "row " + str(cell["row"]) + ". "
         text = text + (", " if cell["col"]!=0 else "") + str(cell["value"])            
     # Play the last row
-    play(text,"_audio_row_" + str(8))
+    play(text,"_audio_row_" + "final")
 
 def printGridToConsole(grid):
     text = ""

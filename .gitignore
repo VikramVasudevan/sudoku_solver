@@ -6,3 +6,4 @@ grid_state copy.txt
 main copy.log
 output copy.json
 output/*
+__pycache__/common.cpython-39.pyc
