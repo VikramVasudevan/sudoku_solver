@@ -10,8 +10,12 @@ from gtts import gTTS
 from playsound import playsound  
 from pathlib import Path
 
+import config
+
 def play(text_val, prefix):
     print(text_val)
+    if(config.DISABLE_AUDIO):
+        return
     # Here are converting in English Language  
     language = 'en'  
     
@@ -39,7 +43,7 @@ def callOut(grid):
         if(cell["col"]%9 ==0):
             if(text != ""):
                 play(text,"_audio_row_" + str(cell["row"]))
-            text = "row " + str(cell["row"]) + ". "
+            text = "row " + str(cell["row"]) + ": "
         text = text + (", " if cell["col"]!=0 else "") + str(cell["value"])            
     # Play the last row
     play(text,"_audio_row_" + "final")
@@ -50,6 +54,6 @@ def printGridToConsole(grid):
         if(cell["col"]%9 ==0):
             if(text != ""):
                 print(text)
-            text = "row " + str(cell["row"]) + ". "
+            text = "row " + str(cell["row"]) + ": "
         text = text + (", " if cell["col"]!=0 else "") + str(cell["value"])            
     print(text)

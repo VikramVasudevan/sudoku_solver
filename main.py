@@ -3,6 +3,7 @@ from time import monotonic
 import config
 import logging
 from common import callOut, play, printGridToConsole
+import time
 
 logging.basicConfig(filename='main.log', encoding='utf-8',
                     level=logging.DEBUG, filemode="w")
@@ -465,6 +466,8 @@ def solve(unsolvedGrid, level):
             finalize(solvedGrid, level)
             log("error", "****COULD NOT SOLVE IN %d ATTEMPTS****" %
                 (config.MAX_ATTEMPTS))
+            print("Uh-Oh! COULD NOT SOLVE IN %d ATTEMPTS!" %
+                (config.MAX_ATTEMPTS))
             return False
 
 
@@ -560,10 +563,15 @@ logInfo(f"Run time {monotonic() - start_time} seconds")
 # printGridState(formatGrid(puzzle))
 if(not solved):
     log("info","EXHAUSTED ALL RULES ... TRYING TO GUESS NOW ...")
+    play("EXHAUSTED ALL RULES ... TRYING TO GUESS NOW ...", "_audio_post_solve")
     guess(puzzle, 0)
 else:
     play("PUZZLE SOLVED! in " + f"{round(monotonic() - start_time,2)} seconds", "_audio_post_solve")
 
+if(not solved):
+    time.sleep(5)
+    print("I GIVE UP! WASTED " + f"{round(monotonic() - start_time,2)} seconds")
+    print("HERE IS WHAT I WAS ABLE TO ACHIEVE SO FAR ...")
 callOut(puzzle)
 
 print("******************************************")
